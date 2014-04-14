@@ -81,7 +81,10 @@
         mobile: '非法的电话号码',
         email: '非法的邮箱',
         chineseName: '非法的中文名',
-        idCard: '非法的身份证号'
+        idCard: '非法的身份证号',
+        checked: '有未选中的选项',
+        chooseOne: '有未完成的项',
+        equal: '两次输入的值不相等'
     };
     
     var typeSeparator = /\s+/;
@@ -132,6 +135,43 @@
         
         idCard: function(value) {
             return idCardRegex.test(value);
+        },
+        
+        checked: function($dom) {
+            return $("input:checked", $dom).length >= 1 ? true : false;
+        },
+        
+        chooseOne: function($dom) {
+            var result = false;
+            $dom.validateFrom(function(results) {
+                if (results.msg.length < $dom.children("[data-validate]").length) {
+                    result = true;
+                }
+            });
+            return result;
+        },
+        
+        equal: function($dom) {
+            var result = false;
+            $dom.validateFrom(function(results) {
+                if (results.msg.length <= 0) {
+                    result = true;
+                }
+            });
+            
+            if (result) {
+                var value = "";
+                $dom.children("[data-validate]").each(function(index, el) {
+                    var tmp = $.trim($(el).val());
+                    if (index === 0) {
+                        value = tmp;
+                    }
+                    else {
+                        result = value !== tmp ? false : true; 
+                    }
+                });
+            }
+            return result;
         }
     };
     
@@ -162,6 +202,18 @@
                     throw new Error("can't find attribute data-max-length");
                 }
                 result = func(value, maxLength);
+                break;
+                
+            case "checked":
+                result = func($(this));
+                break;
+                
+            case "chooseOne":
+                result = func($(this));
+                break;
+            
+            case "equal":
+                result = func($(this));
                 break;
                 
             default:
@@ -210,10 +262,10 @@
                 msg: []
             };
         
-        $("[data-validate]", $form).each(function(index, el) {
+        $form.children("[data-validate]").each(function(index, el) {
             var $this = $(el);
             var type = $this.attr("data-validate");
-            var typeArr = type.split(typeSeparator);
+            var typeArr = type ? type.split(typeSeparator) : [];
             for (var i = 0, j = typeArr.length; i < j; i++) {
                 if (!$this.validate(typeArr[i])) {
                     result.code = "fail";
@@ -228,5 +280,36 @@
         });
         
         callback(result);
+    };
+    
+    function generateObj(obj, keys, value) {
+        keys = keys.split(/\./);
+        for (var i = 0, j = keys.length; i < j; i++) {
+            // console.dir(obj)
+            // console.dir(keys)
+            
+            // i === j - 1 ? (obj[keys[i]] = value) : (obj[keys[i]] = (obj[keys[i]] || {}));
+
+            // i !== j - 1 && (obj[keys[i]] = generateObj(obj[keys[i]], keys.slice(i + 1).join("."), value));
+        }
+        return obj;
+    }
+    
+    $.fn.formData = function() {
+        var $form = $(this);
+        var object = {};
+        
+        $("[data-form-name]", $form).each(function(index, el) {
+            var $this = $(el);
+            var formName = $this.attr("data-form-name");
+            var value = "";
+            var reg = /([^:]*):\{(.*)\}/;
+            var result = reg.exec(formName);
+            if (result[1] === "value") {
+                value = $this.val();
+                object = generateObj(object, result[2], value);
+            }
+        });
+        return object;
     };
 })(jQuery);
