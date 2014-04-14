@@ -75,14 +75,16 @@
     "use strict"
     
     var message = {
-        required: '不能为空。',
-        minLength: '字符长度不够。',
-        maxLength: '字符超长。',
-        mobile: '非法的电话号码。',
-        email: '非法的邮箱。',
-        chineseName: '非法的中文名。',
-        idCard: '非法的身份证号。'
+        required: '不能为空',
+        minLength: '字符长度不够',
+        maxLength: '字符超长',
+        mobile: '非法的电话号码',
+        email: '非法的邮箱',
+        chineseName: '非法的中文名',
+        idCard: '非法的身份证号'
     };
+    
+    var typeSeparator = /\s+/;
     
     var numericRegex = /^[0-9]+$/,
         mobileRegex = /^(13[0-9]|15[0-9]|18[0-9]|14[0-9])\d{8}$/,
@@ -170,6 +172,7 @@
         return result;
     };
     
+    //根据用户输入的验证类型动态校验是否满足条件
     $.fn.monitor = function(type, callback) {
         callback = $.isFunction(callback) ? callback : $.noop;
         
@@ -197,5 +200,33 @@
         });
         
         return this;
+    };
+    
+    $.fn.validateFrom = function(callback) {
+        callback = $.isFunction(callback) ? callback : $.noop;
+        var $form = $(this);
+        var result = {
+                code: "success",
+                msg: []
+            };
+        
+        $("[data-validate]", $form).each(function(index, el) {
+            var $this = $(el);
+            var type = $this.attr("data-validate");
+            var typeArr = type.split(typeSeparator);
+            for (var i = 0, j = typeArr.length; i < j; i++) {
+                if (!$this.validate(typeArr[i])) {
+                    result.code = "fail";
+                    result.msg.push({
+                        dom: $this.get(0),
+                        type: typeArr[i],
+                        message: message[typeArr[i]]
+                    });
+                    break;
+                }
+            }
+        });
+        
+        callback(result);
     };
 })(jQuery);
