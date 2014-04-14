@@ -3,7 +3,7 @@
  * Copyright (c) 2013, in shenzhen. luzhao@xunlei.com
  */
 
- var onInputChange = (function($){
+ var onInputChange = (function($) {
     
     /*
     ie9 doesn't trigger oninput event when content is removed with BACKSPACE, ctrl+x etc... 
@@ -25,8 +25,8 @@
 
     OnInputChange.prototype = {
         
-        _listen: function(){
-            if(onInputSupport){
+        _listen: function() {
+            if (onInputSupport) {
                 this.$element.on('input', $.proxy(this._run, this));
             }
             else {
@@ -35,8 +35,8 @@
             return true;
         },
         
-        _unlisten: function(){
-            if(onInputSupport){
+        _unlisten: function() {
+            if (onInputSupport) {
                 this.$element.off('input', this._run);
             }
             else {
@@ -52,14 +52,14 @@
         },
         
         _check: function(){
-            if(this.element.value != this.value) {
+            if (this.element.value != this.value) {
                 this._run();
             }
         }
     };
     
-    $.fn.onInputChange = function(callback, options){
-        return this.each(function(){
+    $.fn.onInputChange = function(callback, options) {
+        return this.each(function() {
             new OnInputChange(this, callback, options);
         });
     };
@@ -91,7 +91,7 @@
         idCardRegex = /(^[1-9]\d{5}[1-9]\d{3}((0\d)|(1[0-2]))(([0|1|2]\d)|3[0-1])\d{3}[X|x|0-9]$)|(^[1-9]\d{7}((0\d)|(1[0-2]))(([0|1|2]\d)|3[0-1])\d{3}$)/;
 
     var validate = {
-        required: function (value) {
+        required: function(value) {
             value = $.trim(value);
             return value !== "" && value !== null;
         },
@@ -100,7 +100,7 @@
             return numericRegex.test(value);
         },
         
-        minLength: function (value, length) {
+        minLength: function(value, length) {
             if (!numericRegex.test(length)) {
                 return false;
             }
@@ -108,7 +108,7 @@
             return (value.length >= parseInt(length, 10));
         },
         
-        maxLength: function (value, length) {
+        maxLength: function(value, length) {
             if (!numericRegex.test(length)) {
                 return false;
             }
@@ -116,26 +116,26 @@
             return (value.length <= parseInt(length, 10));
         },
         
-        mobile: function (value) {
+        mobile: function(value) {
             return mobileRegex.test(value);
         },
         
-        email: function (value) {
+        email: function(value) {
             return emailRegex.test(value);
         },
         
-        chineseName: function (value) {
+        chineseName: function(value) {
             return chineseNameRegex.test(value);
         },
         
-        idCard: function (value) {
+        idCard: function(value) {
             return idCardRegex.test(value);
         }
     };
     
     $.validate = validate;
     
-    $.fn.validate = function (type) {
+    $.fn.validate = function(type) {
         var result,
             condition,
             value = $.trim($(this).val()),
@@ -170,7 +170,7 @@
         return result;
     };
     
-    $.fn.monitor = function (type, callback) {
+    $.fn.monitor = function(type, callback) {
         callback = $.isFunction(callback) ? callback : $.noop;
         
         var typeSeparator = /\s+/,
