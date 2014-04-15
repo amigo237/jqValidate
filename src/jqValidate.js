@@ -95,6 +95,17 @@
         chineseNameRegex = /^[\u4E00-\u9FA5]{2,}(?:·[\u4E00-\u9FA5]{1,})*$/,
         idCardRegex = /(^[1-9]\d{5}[1-9]\d{3}((0\d)|(1[0-2]))(([0|1|2]\d)|3[0-1])\d{3}[X|x|0-9]$)|(^[1-9]\d{7}((0\d)|(1[0-2]))(([0|1|2]\d)|3[0-1])\d{3}$)/;
 
+    function createObjectByKey(obj, keys, value) {
+        if (keys.length > 0) {
+            var key = keys[0];
+            if (obj[key] === undefined) {
+                obj[key] = keys.length === 1 ? value : {};
+            }
+            obj[key] = createObjectByKey(obj[key], keys.slice(1), value);
+        }
+        return obj;
+    };
+    
     var validate = {
         required: function(value) {
             value = $.trim(value);
@@ -109,7 +120,6 @@
             if (!numericRegex.test(length)) {
                 return false;
             }
-
             return (value.length >= parseInt(length, 10));
         },
         
@@ -117,7 +127,6 @@
             if (!numericRegex.test(length)) {
                 return false;
             }
-            
             return (value.length <= parseInt(length, 10));
         },
         
@@ -247,7 +256,6 @@
                     });
                 }
             }
-            
             callback(result);
         });
         
@@ -278,23 +286,9 @@
                 }
             }
         });
-        
         callback(result);
     };
-    
-    function generateObj(obj, keys, value) {
-        keys = keys.split(/\./);
-        for (var i = 0, j = keys.length; i < j; i++) {
-            // console.dir(obj)
-            // console.dir(keys)
-            
-            // i === j - 1 ? (obj[keys[i]] = value) : (obj[keys[i]] = (obj[keys[i]] || {}));
-
-            // i !== j - 1 && (obj[keys[i]] = generateObj(obj[keys[i]], keys.slice(i + 1).join("."), value));
-        }
-        return obj;
-    }
-    
+        
     $.fn.formData = function() {
         var $form = $(this);
         var object = {};
@@ -303,12 +297,19 @@
             var $this = $(el);
             var formName = $this.attr("data-form-name");
             var value = "";
-            var reg = /([^:]*):\{(.*)\}/;
-            var result = reg.exec(formName);
-            if (result[1] === "value") {
+            var result = /([^:]*):\s*(.*)\s*/.exec(formName);
+            var type = result[1];
+            var keys = result[2] && result[2].split(/\./);
+            if (type === "text") {
                 value = $this.val();
-                object = generateObj(object, result[2], value);
             }
+            else if (type === "checkbox" || type === "radio") {
+                value = $("input:checked", $this).val();
+            }
+            else if (type === "option") {
+                value = $("option:selected", $this).val();
+            }
+            object = createObjectByKey(object, keys, value);
         });
         return object;
     };
